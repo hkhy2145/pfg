@@ -11,7 +11,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   String url = '';
   var data;
-  String output = 'Initial Output';
+  String output = 'Initial_Output';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
