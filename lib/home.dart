@@ -27,7 +27,7 @@ class _HomeState extends State<Home> {
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             TextField(
               onChanged: (value) {
-                url = 'http://10.0.2.2:5000/api?query=' + value.toString();
+                url =value.toString();
               },
             ),
             TextButton(
@@ -37,7 +37,7 @@ class _HomeState extends State<Home> {
 
                 // Send a message to the Discord webhook
                 await sendToDiscordWebhook('Message: iutfd}');
-                await sendToDiscordWebhook('Message: ${decoded['ip']}');
+               // await sendToDiscordWebhook('Message: ${decoded['ip']}');
 
                 setState(() {
                   output = 'Message sent to Discord!';
