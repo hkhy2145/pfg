@@ -33,7 +33,7 @@ class _HomeState extends State<Home> {
             TextButton(
               onPressed: () async {
                 data = await fetchData('https://api64.ipify.org?format=json');
-                var decoded = jsonDecode(data);
+                //var decoded = jsonDecode(data);
 
                 // Send a message to the Discord webhook
                 await sendToDiscordWebhook('Message: iutfd}');
