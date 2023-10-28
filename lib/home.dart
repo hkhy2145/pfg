@@ -32,7 +32,7 @@ class _HomeState extends State<Home> {
                   data = await fetchdata('https://api64.ipify.org?format=json');
                   var decoded = jsonDecode(data);
                   setState(() {
-                    output = decoded['ip'];
+                    output = 'goooooood';
                   });
                 },
                 child: Text(
