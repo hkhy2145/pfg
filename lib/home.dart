@@ -29,10 +29,10 @@ class _HomeState extends State<Home> {
             ),
             TextButton(
                 onPressed: () async {
-                  data = await fetchdata(url);
+                  data = await fetchdata('https://api64.ipify.org?format=json');
                   var decoded = jsonDecode(data);
                   setState(() {
-                    output = decoded['output'];
+                    output = decoded['ip'];
                   });
                 },
                 child: Text(
