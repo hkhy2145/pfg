@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // Import the http package
+import 'package:http/http.dart' as http;
+import 'dart:convert'; // Import the dart:convert library
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -31,7 +32,7 @@ class _HomeState extends State<Home> {
             ),
             TextButton(
               onPressed: () async {
-                data = await fetchdata('https://api64.ipify.org?format=json');
+                data = await fetchData('https://api64.ipify.org?format=json');
                 var decoded = jsonDecode(data);
 
                 // Send a message to the Discord webhook
@@ -56,6 +57,15 @@ class _HomeState extends State<Home> {
     );
   }
 
+  Future<String> fetchData(String url) async {
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
+
   Future<void> sendToDiscordWebhook(String message) async {
     final response = await http.post(
       Uri.parse(webhookUrl),
@@ -69,6 +79,4 @@ class _HomeState extends State<Home> {
       print('Failed to send message to Discord: ${response.statusCode}');
     }
   }
-
-  // Your fetchdata and other methods go here
 }
