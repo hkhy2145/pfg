@@ -3,34 +3,34 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
-  runApp(DiscordWebhookApp());
+  runApp(MyApp());
 }
 
-class DiscordWebhookApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: DiscordWebhookScreen(),
+      home: DiscordWebhookApp(),
     );
   }
 }
 
-class DiscordWebhookScreen extends StatefulWidget {
+class DiscordWebhookApp extends StatefulWidget {
   @override
-  _DiscordWebhookScreenState createState() => _DiscordWebhookScreenState();
+  _DiscordWebhookAppState createState() => _DiscordWebhookAppState();
 }
 
-class _DiscordWebhookScreenState extends State<DiscordWebhookScreen> {
-  TextEditingController textController = TextEditingController();
-  String outputMessage = '';
-
-  final webhookUrl =
-      'https://discord.com/api/webhooks/1165290854416646225/NFI2Puw2SYeWNetzEm9sr_KtCSjEA-6CS54hTQZDCy7LD-EYLuv0rM2oiooO7ObazFZvU';
+class _DiscordWebhookAppState extends State<DiscordWebhookApp> {
+  TextEditingController textEditingController = TextEditingController();
+  String outputText = '';
 
   void sendToDiscord() async {
-    String message = textController.text;
-    var data = {'content': message};
-    var response = await http.post(
+    String message = textEditingController.text;
+    String webhookUrl = "https://discord.com/api/webhooks/1165290854416646225/NFI2Puw2SYeWNetzEm9sr_KtCSjEA-6CS54hTQZDCy7LD-EYLuv0rM2oioO7ObazFZvU";
+
+    Map<String, String> data = {"content": message};
+
+    final response = await http.post(
       Uri.parse(webhookUrl),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(data),
@@ -38,11 +38,11 @@ class _DiscordWebhookScreenState extends State<DiscordWebhookScreen> {
 
     if (response.statusCode == 204) {
       setState(() {
-        outputMessage = 'Message sent to Discord successfully';
+        outputText = "Message sent to Discord successfully";
       });
     } else {
       setState(() {
-        outputMessage = 'Failed to send message to Discord: ${response.statusCode}';
+        outputText = "Failed to send message to Discord: ${response.statusCode}";
       });
     }
   }
@@ -51,7 +51,7 @@ class _DiscordWebhookScreenState extends State<DiscordWebhookScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Flutter Discord Webhook Example'),
+        title: Text('Flutter Discord Webhook App'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -59,19 +59,16 @@ class _DiscordWebhookScreenState extends State<DiscordWebhookScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             TextField(
-              controller: textController,
-              decoration: InputDecoration(hintText: 'Enter your message'),
+              controller: textEditingController,
+              decoration: InputDecoration(hintText: "Enter your message"),
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: sendToDiscord,
-              child: Text('Send Message to Discord'),
+              child: Text('Send to Discord'),
             ),
             SizedBox(height: 20),
-            Text(
-              outputMessage,
-              style: TextStyle(fontSize: 18),
-            ),
+            Text(outputText),
           ],
         ),
       ),
