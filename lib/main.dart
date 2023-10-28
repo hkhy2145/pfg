@@ -44,7 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  String output = 'Initial Output';
+  String output = 'Click the button to send a message to Discord'; // Initialize output
 
   @override
   Widget build(BuildContext context) {
