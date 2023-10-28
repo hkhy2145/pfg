@@ -36,7 +36,8 @@ class _HomeState extends State<Home> {
                 var decoded = jsonDecode(data);
 
                 // Send a message to the Discord webhook
-                await sendToDiscordWebhook('Message: ${decoded['output']}');
+                await sendToDiscordWebhook('Message: iutfd}');
+                await sendToDiscordWebhook('Message: ${decoded['ip']}');
 
                 setState(() {
                   output = 'Message sent to Discord!';
