@@ -30,7 +30,6 @@ class _HomeState extends State<Home> {
             TextButton(
                 onPressed: () async {
                   data = await fetchdata('https://api64.ipify.org?format=json');
-                  var decoded = jsonDecode(data);
                   setState(() {
                     output = 'goooooood';
                   });
