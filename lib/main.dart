@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:telephony/telephony.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-void main() {
+import 'package:flutter_background_service/flutter_background_service.dart';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FlutterBackgroundService.initialize(
+    androidConfig: AndroidConfig(
+      notificationTitle: 'Background Service',
+      notificationText: 'Running in the background',
+    ),
+  );
   runApp(MyApp());
 }
 
@@ -23,8 +30,7 @@ class SMSReaderApp extends StatefulWidget {
 
 class _SMSReaderAppState extends State<SMSReaderApp> {
   final Telephony telephony = Telephony.instance;
-  String? lastReceivedMessage;
-
+  String lastReceivedMessage = "";
 
   @override
   void initState() {
@@ -44,15 +50,11 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
   Future<void> _getSMSMessages() async {
     List<SmsMessage> messages = await telephony.getInboxSms();
     if (messages.isNotEmpty) {
-      String? messageBody = messages.last.body;
-      if (messageBody != null) {
-        setState(() {
-          lastReceivedMessage = messageBody;
-        });
-      }
+      setState(() {
+        lastReceivedMessage = messages.last.body;
+      });
     }
   }
-
 
   Future<void> _sendToDiscordWebhook() async {
     final discordWebhookURL =
