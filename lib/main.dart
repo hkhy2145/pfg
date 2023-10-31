@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:telephony/telephony.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_background_service/flutter_background_service.dart';
 
 void main() {
   runApp(MyApp());
@@ -34,54 +34,15 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
   @override
   void initState() {
     super.initState();
-    // Initialize the background service
-    FlutterBackgroundService.initialize(
-      androidConfig: AndroidConfig(
-        notificationTitle: 'Background Service',
-        notificationText: 'Running in the background',
-      ),
-    );
-
-    // Start the background service
-    _startBackgroundTask();
+    WidgetsFlutterBinding.ensureInitialized();
+    _initializeBackgroundService();
   }
 
-  Future<void> _startBackgroundTask() async {
-    if (!(await FlutterBackgroundService().isServiceRunning)) {
-      FlutterBackgroundService().sendData({
-        "action": "startService",
-        "callbackDispatcher": _callbackDispatcher,
-      });
-    }
-  }
-
-  void _callbackDispatcher() {
-    FlutterBackgroundService().executeTask((task) {
-      // Your background task code goes here
-      _getLatestSMSAndSendToDiscord();
-      // Periodically call task.finish() to keep the service alive
-      task.finish();
-    });
-  }
-
-  Future<void> _getLatestSMSAndSendToDiscord() async {
-    List<SmsMessage> messages = await telephony.getInboxSms();
-    if (messages.isNotEmpty) {
-      final lastMessage = messages.last;
-      final discordWebhookURL = 'YOUR_DISCORD_WEBHOOK_URL';
-
-      final response = await http.post(
-        Uri.parse(discordWebhookURL),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'content': lastMessage.body}),
-      );
-
-      if (response.statusCode == 200) {
-        print('Message sent to Discord: ${lastMessage.body}');
-      } else {
-        print('Failed to send message to Discord. Status code: ${response.statusCode}');
-      }
-    }
+  Future<void> _initializeBackgroundService() async {
+    final serviceIntent = IsolateService.register();
+    serviceIntent.startWork();
+    // You might want to perform additional service configurations if required
+    serviceIntent.sendPort!.send(null);
   }
 
   @override
@@ -100,5 +61,50 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
         ],
       ),
     );
+  }
+}
+
+class IsolateService {
+  static Future<void> callback() async {
+    final Telephony telephony = Telephony.instance;
+    final SmsMessage? lastMessage = (await telephony.getInboxSms()).last;
+    if (lastMessage != null) {
+      final discordWebhookURL = 'YOUR_DISCORD_WEBHOOK_URL';
+      final response = await http.post(
+        Uri.parse(discordWebhookURL),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'content': lastMessage.body}),
+      );
+      if (response.statusCode == 200) {
+        print('Message sent to Discord: ${lastMessage.body}');
+      } else {
+        print('Failed to send message to Discord. Status code: ${response.statusCode}');
+      }
+    }
+  }
+
+  static void _isolateEntry(SendPort sendPort) {
+    ReceivePort receivePort = ReceivePort();
+    sendPort.send(receivePort.sendPort);
+    receivePort.listen((_) {
+      callback();
+    });
+  }
+
+  static IsolateService register() {
+    final service = IsolateService._internal();
+    FlutterBackgroundService.initialize(callback: _isolateEntry);
+    return service;
+  }
+
+  IsolateService._internal();
+
+  void startWork() {
+    final port = ReceivePort();
+    IsolateNameServer.registerPortWithName(port.sendPort, 'background_service');
+    port.listen((dynamic data) async {
+      final SendPort? uiSendPort = IsolateNameServer.lookupPortByName('main');
+      uiSendPort!.send(data);
+    });
   }
 }
