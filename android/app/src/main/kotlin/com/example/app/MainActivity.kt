@@ -1,6 +1,16 @@
 package com.example.app
 
-import io.flutter.embedding.android.FlutterActivity
+import android.app.Service
+import android.content.Intent
+import android.os.IBinder
 
-class MainActivity: FlutterActivity() {
+class BackgroundService : Service() {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Start your background tasks or Flutter code here
+        return START_STICKY
+    }
+
+    override fun onBind(intent: Intent): IBinder? {
+        return null
+    }
 }
