@@ -23,7 +23,8 @@ class SMSReaderApp extends StatefulWidget {
 
 class _SMSReaderAppState extends State<SMSReaderApp> {
   final Telephony telephony = Telephony.instance;
-  String lastReceivedMessage = "";
+  String? lastReceivedMessage;
+
 
   @override
   void initState() {
@@ -43,11 +44,15 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
   Future<void> _getSMSMessages() async {
     List<SmsMessage> messages = await telephony.getInboxSms();
     if (messages.isNotEmpty) {
-      setState(() {
-        lastReceivedMessage = messages.last.body;
-      });
+      String? messageBody = messages.last.body;
+      if (messageBody != null) {
+        setState(() {
+          lastReceivedMessage = messageBody;
+        });
+      }
     }
   }
+
 
   Future<void> _sendToDiscordWebhook() async {
     final discordWebhookURL =
