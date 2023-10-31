@@ -5,8 +5,9 @@
     <uses-permission android:name="android.permission.RECEIVE_SMS"/>
 
    <application
-        android:label="app"
-        android:icon="@mipmap/ic_launcher">
+    android:label=""
+    android:icon="@mipmap/ic_launcher"
+    android:enabled="false">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
