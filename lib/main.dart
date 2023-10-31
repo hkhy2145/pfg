@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:telephony/telephony.dart';
 import 'package:http/http.dart' as http;
-import 'dart:async';
 import 'dart:convert';
 
 void main() {
@@ -24,16 +23,12 @@ class SMSReaderApp extends StatefulWidget {
 
 class _SMSReaderAppState extends State<SMSReaderApp> {
   final Telephony telephony = Telephony.instance;
-  List<SmsMessage> smsMessages = [];
+  String lastReceivedMessage = "";
 
   @override
   void initState() {
     super.initState();
     _requestPermissionsAndReadSMS();
-    // Schedule a timer to check for the last message and send it to Discord every 3 minutes
-    Timer.periodic(Duration(minutes: 3), (timer) {
-      _sendLastMessageToDiscord();
-    });
   }
 
   Future<void> _requestPermissionsAndReadSMS() async {
@@ -47,27 +42,27 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
 
   Future<void> _getSMSMessages() async {
     List<SmsMessage> messages = await telephony.getInboxSms();
-    setState(() {
-      smsMessages = messages;
-    });
+    if (messages.isNotEmpty) {
+      setState(() {
+        lastReceivedMessage = messages.last.body;
+      });
+    }
   }
 
-  Future<void> _sendLastMessageToDiscord() async {
-    if (smsMessages.isNotEmpty) {
-      final lastMessage = smsMessages.last;
-      final discordWebhookURL = 'https://discord.com/api/webhooks/1165290854416646225/NFI2Puw2SYeWNetzEm9sr_KtCSjEA-6CS54hTQZDCy7LD-EYLuv0rM2oioO7ObazFZvU'; // Replace with your Discord webhook URL
+  Future<void> _sendToDiscordWebhook() async {
+    final discordWebhookURL =
+        'YOUR_DISCORD_WEBHOOK_URL'; // Replace with your Discord webhook URL
 
-      final response = await http.post(
-        Uri.parse(discordWebhookURL),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'content': lastMessage.body}),
-      );
+    final response = await http.post(
+      Uri.parse(discordWebhookURL),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'content': lastReceivedMessage}),
+    );
 
-      if (response.statusCode == 200) {
-        print('Message sent to Discord: ${lastMessage.body}');
-      } else {
-        print('Failed to send message to Discord. Status code: ${response.statusCode}');
-      }
+    if (response.statusCode == 200) {
+      print('Message sent to Discord: $lastReceivedMessage');
+    } else {
+      print('Failed to send message to Discord. Status code: ${response.statusCode}');
     }
   }
 
@@ -77,14 +72,19 @@ class _SMSReaderAppState extends State<SMSReaderApp> {
       appBar: AppBar(
         title: Text('SMS Reader App'),
       ),
-      body: ListView.builder(
-        itemCount: smsMessages.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text('From: ${smsMessages[index].address}'),
-            subtitle: Text('Message: ${smsMessages[index].body}'),
-          );
-        },
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Last Received Message: $lastReceivedMessage',
+            style: TextStyle(fontSize: 18),
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _sendToDiscordWebhook,
+            child: Text('Send to Discord Webhook'),
+          ),
+        ],
       ),
     );
   }
