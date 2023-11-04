@@ -1,11 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.hkhtta77.app">
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_SMS"/>
+    <uses-permission android:name="android.permission.SEND_SMS"/>
     <uses-permission android:name="android.permission.RECEIVE_SMS"/>
 
    <application
-    android:label="hkhtta"
+    android:label="@string/app_name"
     android:icon="@mipmap/ic_launcher"
     android:enabled="true">
         <activity
@@ -40,11 +41,11 @@
        
         <!-- Receiver for incoming SMS -->
         <receiver android:name="com.shounakmulay.telephony.sms.IncomingSmsReceiver"
-            android:permission="android.permission.BROADCAST_SMS" android:exported="true">
-            <intent-filter>
-                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
-            </intent-filter>
-        </receiver>
+		    android:permission="android.permission.BROADCAST_SMS" android:exported="true">
+		    <intent-filter>
+			<action android:name="android.provider.Telephony.SMS_RECEIVED"/>
+		    </intent-filter>
+		</receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
